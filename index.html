@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Executive Portfolio | Engineer & Designer</title>
+    <title>Amin Jumaev | Executive Portfolio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
@@ -15,17 +15,20 @@
         body { background-color: var(--bg); color: #E2E8F0; font-family: 'Inter', sans-serif; overflow-x: hidden; margin: 0; }
         .font-serif { font-family: 'Cormorant Garamond', serif; }
 
-        /* --- DYNAMIC MESH BACKGROUND --- */
+        /* --- DYNAMIC ANIMATED MESH BACKGROUND --- */
         .mesh-container {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1; background: #050505; overflow: hidden;
+            z-index: -1; background: #050505; overflow: hidden; pointer-events: none;
         }
         .mesh-ball {
-            position: absolute; width: 600px; height: 600px;
-            border-radius: 50%; filter: blur(100px); opacity: 0.15;
-            background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
-            transition: transform 0.8s cubic-bezier(0.2, 0, 0.2, 1);
+            position: absolute; width: 700px; height: 700px;
+            border-radius: 50%; filter: blur(90px); opacity: 0.35;
+            background: radial-gradient(circle, var(--accent) 0%, rgba(220,38,38,0.2) 50%, transparent 70%);
+            will-change: transform;
         }
+        #ball1 { top: -10%; left: -10%; }
+        #ball2 { bottom: -10%; right: -10%; background: radial-gradient(circle, #EF4444 0%, rgba(153,27,27,0.3) 50%, transparent 70%); }
+        #ball3 { top: 30%; left: 40%; width: 600px; height: 600px; opacity: 0.3; background: radial-gradient(circle, #B91C1C 0%, transparent 70%); }
 
         /* --- BENTO STYLING --- */
         .bento-card {
@@ -49,6 +52,20 @@
             border-radius: 12px; color: var(--accent);
         }
 
+        /* Modal Styles */
+        .modal-overlay {
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1; pointer-events: auto;
+        }
+        .modal-content {
+            transform: scale(0.95); transition: transform 0.3s ease;
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
         /* Hide Cursor on Mobile */
         #cursor-dot, #cursor-outline { 
             position: fixed; pointer-events: none; z-index: 1000; border-radius: 50%; 
@@ -58,7 +75,7 @@
 
         @media (max-width: 768px) {
             #cursor-dot, #cursor-outline { display: none !important; }
-            .mesh-ball { width: 300px; height: 300px; }
+            .mesh-ball { width: 350px; height: 350px; filter: blur(60px); opacity: 0.3; }
         }
         
         .noise { 
@@ -71,32 +88,72 @@
 <body>
 
     <div class="mesh-container">
-        <div class="mesh-ball" id="ball1" style="top: -10%; left: -5%;"></div>
-        <div class="mesh-ball" id="ball2" style="bottom: -10%; right: -5%; background: radial-gradient(circle, #333 0%, transparent 70%);"></div>
+        <div class="mesh-ball" id="ball1"></div>
+        <div class="mesh-ball" id="ball2"></div>
+        <div class="mesh-ball" id="ball3"></div>
     </div>
 
     <div id="cursor-dot"></div>
     <div id="cursor-outline"></div>
     <div class="noise"></div>
 
-    <nav class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 bg-black/40 backdrop-blur-xl border border-white/5 rounded-full flex gap-6 md:gap-8 items-center">
+    <nav class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 bg-black/40 backdrop-blur-xl border border-white/5 rounded-full flex gap-4 md:gap-6 items-center">
         <a href="#" class="text-[9px] md:text-[10px] tracking-widest font-bold hover:text-[#DC2626] transition-colors">HOME</a>
         <a href="#expertise" class="text-[9px] md:text-[10px] tracking-widest font-bold hover:text-[#DC2626] transition-colors">EXPERTISE</a>
         <a href="#projects" class="text-[9px] md:text-[10px] tracking-widest font-bold hover:text-[#DC2626] transition-colors">PROJECTS</a>
+        <a href="#diplomacy" class="text-[9px] md:text-[10px] tracking-widest font-bold hover:text-[#DC2626] transition-colors">DIPLOMACY</a>
         <a href="#credentials" class="text-[9px] md:text-[10px] tracking-widest font-bold hover:text-[#DC2626] transition-colors">CREDENTIALS</a>
         <a href="#contact" class="text-[9px] md:text-[10px] tracking-widest font-bold hover:text-[#DC2626] transition-colors">CONTACT</a>
+        <button onclick="openCVModal()" class="px-3 py-1 bg-[#DC2626] text-white rounded-full text-[9px] tracking-widest font-bold uppercase hover:bg-white hover:text-black transition-all cursor-pointer">CV</button>
     </nav>
 
-    <section class="min-h-screen flex flex-col justify-center items-center text-center px-6 pt-20">
-        <div class="fade-in">
+    <!-- CV MODAL POPUP -->
+    <div id="cvModal" class="modal-overlay fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 md:p-6 overflow-y-auto">
+        <div class="modal-content bento-card w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 md:p-12 bg-[#121212]/90 border border-white/10 relative shadow-2xl">
+            <button onclick="closeCVModal()" class="absolute top-6 right-6 icon-box hover:bg-[#DC2626] hover:text-white transition-all cursor-pointer">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="mb-8 border-b border-white/10 pb-6">
+                <span class="text-[#DC2626] tracking-[0.3em] text-[10px] font-bold uppercase mb-2 block">Curriculum Vitae</span>
+                <h2 class="text-3xl md:text-5xl font-serif italic mb-2">AMIN JUMAEV</h2>
+                <p class="text-gray-400 text-sm">Dushanbe, Tajikistan<br>+992 93 552 66 77 | amin.jumaev7@gmail.com</p>
+            </div>
+            <div class="space-y-8 text-sm">
+                <div class="p-5 bg-white/[0.02] rounded-2xl border border-white/5">
+                    <h3 class="text-xs tracking-[0.2em] text-[#DC2626] font-bold uppercase mb-3">PROFILE</h3>
+                    <p class="text-gray-300 leading-relaxed font-light text-xs md:text-sm">
+                        Dedicated and adaptable student currently pursuing studies in Digital Technologies at the Tajik Technical University. Committed to leveraging technology for social good, with a unique international background and practical experience in customer service and digital operations. A selected participant of the UNRCCA Preventive Diplomacy Academy, aiming to bridge the gap between technical innovation and effective policy management.
+                    </p>
+                </div>
+            </div>
+            <div class="mt-8 pt-6 border-t border-white/10 flex justify-between items-center">
+                <span class="text-[10px] text-gray-500 uppercase tracking-widest">Date of compilation: 2026</span>
+                <button onclick="window.print()" class="px-6 py-2.5 bg-[#DC2626] text-white rounded-full text-[10px] tracking-widest font-bold uppercase hover:bg-white hover:text-black transition-all cursor-pointer flex items-center gap-2">
+                    <i data-lucide="printer" class="w-4 h-4"></i> Print / Save as PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HERO SECTION WITH PHOTO -->
+    <section class="min-h-screen flex flex-col justify-center items-center text-center px-6 pt-28 pb-12 max-w-5xl mx-auto">
+        <div class="fade-in flex flex-col items-center">
+            
+            <!-- AVATAR CARD -->
+            <div class="bento-card p-2 w-36 h-36 md:w-44 md:h-44 rounded-full mb-8 border border-[#DC2626]/40 shadow-2xl relative group">
+                <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-[#DC2626]/30 to-transparent opacity-70"></div>
+                <!-- Здесь вставлена твоя фотография -->
+                <img src="IMG-20260330-WA0019.jpg" alt="Amin Jumaev" class="w-full h-full object-cover rounded-full filter contrast-105 group-hover:scale-105 transition-transform duration-500">
+            </div>
+
             <span class="text-[#DC2626] tracking-[0.5em] text-[10px] font-black uppercase mb-4 block">4 Years of Experience</span>
-            <h1 class="text-5xl md:text-[9rem] font-serif italic leading-tight md:leading-none mb-6">
+            <h1 class="text-5xl md:text-[7.5rem] font-serif italic leading-tight md:leading-none mb-6">
                 Mastery <span class="not-italic font-bold text-white">&</span> <br class="hidden md:block">
                 <span class="text-[#DC2626]">Leadership.</span>
             </h1>
             <p class="max-w-2xl text-gray-400 font-light text-base md:text-lg tracking-wide mx-auto leading-relaxed px-4">
-                Senior Python Architect, Cybersecurity & AI Enthusiast, and International Relations Scholar. <br class="hidden md:block">
-                Bridging secure backend architecture, artificial intelligence, and global diplomacy.
+                Senior Python Architect & Creative Design Lead. <br class="hidden md:block">
+                Active delegate in UNRCCA Preventive Diplomacy.
             </p>
         </div>
     </section>
@@ -104,90 +161,116 @@
     <!-- EXPERTISE & PILLARS -->
     <section id="expertise" class="py-20 px-4 md:px-6 max-w-7xl mx-auto">
         <h2 class="text-xs tracking-[0.5em] text-[#DC2626] font-bold uppercase mb-12 text-center">Core Pillars</h2>
-        
         <div class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6">
-            
-            <!-- Architecture & Code -->
-            <div class="bento-card md:col-span-7 p-8 md:p-12 flex flex-col justify-between min-h-[400px]">
+            <div class="bento-card md:col-span-7 p-8 md:p-12 flex flex-col justify-between">
                 <div>
                     <div class="icon-box mb-6"><i data-lucide="terminal"></i></div>
                     <h3 class="text-3xl md:text-4xl font-serif italic mb-4">Architecture & Security</h3>
-                    <p class="text-gray-400 leading-relaxed text-sm md:text-base">Specializing in Python backend systems, security analysis, APIs, and robust software engineering with 4 years of hands-on experience.</p>
+                    <p class="text-gray-400 leading-relaxed text-sm md:text-base mb-4">
+                        Forging high-performance Python backends and rock-solid APIs over 4 years of hands-on coding. I turn complex logic into clean, impenetrable, and lightning-fast digital engines.
+                    </p>
                 </div>
                 <div class="flex gap-2 flex-wrap mt-8">
                     <span class="px-3 py-1 bg-white/5 rounded-full text-[9px] border border-white/10 uppercase font-bold">Python</span>
-                    <span class="px-3 py-1 bg-white/5 rounded-full text-[9px] border border-white/10 uppercase font-bold">FastAPI / Django</span>
+                    <span class="px-3 py-1 bg-white/5 rounded-full text-[9px] border border-white/10 uppercase font-bold">FastAPI</span>
                     <span class="px-3 py-1 bg-white/5 rounded-full text-[9px] border border-white/10 uppercase font-bold">Cybersecurity</span>
                 </div>
             </div>
-
-            <!-- Graphic Design -->
-            <div class="bento-card md:col-span-5 p-8 md:p-12 flex flex-col justify-between min-h-[300px]">
+            <div class="bento-card md:col-span-5 p-8 md:p-12 flex flex-col justify-between">
                 <div>
                     <div class="icon-box mb-6"><i data-lucide="palette"></i></div>
-                    <h3 class="text-2xl md:text-3xl font-serif italic mb-2">Graphic Design</h3>
-                    <p class="text-gray-500 text-sm">4 years of visual theory applied to stunning digital identities, web interfaces, and UI/UX.</p>
+                    <h3 class="text-2xl md:text-3xl font-serif italic mb-4">Graphic Design</h3>
+                    <p class="text-gray-400 text-sm md:text-base leading-relaxed mb-4">
+                        Translating deep visual theory into sleek, immersive user interfaces and distinct digital identities.
+                    </p>
                 </div>
-                <div class="mt-6 rounded-2xl overflow-hidden grayscale hover:grayscale-0 transition-all duration-700 h-24">
-                    <img src="https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=600&q=80" alt="Design Work" class="w-full h-full object-cover">
-                </div>
-            </div>
-
-            <!-- International Relations -->
-            <div class="bento-card md:col-span-6 p-8 md:p-12 flex flex-col justify-between min-h-[280px]">
-                <div>
-                    <div class="icon-box mb-6"><i data-lucide="globe"></i></div>
-                    <h3 class="text-2xl md:text-3xl font-serif italic mb-3">International Relations</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed">Deeply engaged in global affairs, cross-border diplomacy, and strategic geopolitical analysis, linking technology with policy.</p>
-                </div>
-                <div class="flex gap-2 flex-wrap mt-6">
-                    <span class="px-3 py-1 bg-white/5 rounded-full text-[9px] border border-white/10 uppercase font-bold">Global Policy</span>
-                    <span class="px-3 py-1 bg-white/5 rounded-full text-[9px] border border-white/10 uppercase font-bold">Diplomacy</span>
-                </div>
-            </div>
-
-            <!-- UNRCCA PDA Academy -->
-            <div class="bento-card md:col-span-6 p-8 md:p-12 flex flex-col justify-between min-h-[280px]">
-                <div>
-                    <div class="icon-box mb-6"><i data-lucide="award"></i></div>
-                    <h3 class="text-2xl md:text-3xl font-serif italic mb-3">UNRCCA PDA Academy</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed">Active participant of the UNRCCA Preventive Diplomacy Academy, focusing on regional security dialogue and peacebuilding initiatives.</p>
-                </div>
-                <div class="flex gap-2 flex-wrap mt-6">
-                    <span class="px-3 py-1 bg-white/5 rounded-full text-[9px] border border-white/10 uppercase font-bold">Preventive Diplomacy</span>
-                    <span class="px-3 py-1 bg-white/5 rounded-full text-[9px] border border-white/10 uppercase font-bold">UNRCCA</span>
+                <div class="flex gap-2 flex-wrap mt-8">
+                    <span class="px-3 py-1 bg-white/5 rounded-full text-[9px] border border-white/10 uppercase font-bold">UI/UX</span>
+                    <span class="px-3 py-1 bg-white/5 rounded-full text-[9px] border border-white/10 uppercase font-bold">Visual Theory</span>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- PROJECTS & TECH -->
+    <!-- PROJECTS & INTERACTIVE APPS -->
     <section id="projects" class="py-20 px-4 md:px-6 max-w-7xl mx-auto">
-        <h2 class="text-xs tracking-[0.5em] text-[#DC2626] font-bold uppercase mb-12 text-center">Featured Works</h2>
+        <h2 class="text-xs tracking-[0.5em] text-[#DC2626] font-bold uppercase mb-12 text-center">Featured Works (Interactive Modules)</h2>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bento-card p-8 md:p-10 flex flex-col justify-between">
+            
+            <!-- PROJECT 1: CyberSec AI Platform -->
+            <div class="bento-card p-6 md:p-8 flex flex-col justify-between">
                 <div>
-                    <div class="icon-box mb-6"><i data-lucide="shield-alert"></i></div>
-                    <h3 class="text-2xl font-serif italic mb-3">CyberSec AI Platform</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed mb-6">Multi-module security ecosystem featuring automated phishing detection, interactive security training modules, and advanced password strength analysis.</p>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="icon-box"><i data-lucide="shield-alert"></i></div>
+                        <span class="text-[9px] tracking-widest text-[#DC2626] font-bold uppercase bg-[#DC2626]/10 px-3 py-1 rounded-full border border-[#DC2626]/20">Live Tool</span>
+                    </div>
+                    <h3 class="text-2xl font-serif italic mb-2">CyberSec AI Platform</h3>
+                    <p class="text-gray-400 text-xs leading-relaxed mb-4">Тестирование стойкости пароля в реальном времени и эвристический анализ фишинговых ссылок.</p>
+                    
+                    <div class="bg-black/40 p-4 rounded-2xl border border-white/10 space-y-3 mb-4">
+                        <div>
+                            <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Проверка пароля:</label>
+                            <input type="password" id="pwdInput" placeholder="Введите пароль для анализа..." oninput="analyzePasswordLive()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#DC2626]">
+                        </div>
+                        <div id="pwdResult" class="text-[11px] text-gray-300 font-mono bg-white/[0.02] p-2.5 rounded-xl border border-white/5">
+                            Статус: ожидание ввода...
+                        </div>
+                    </div>
                 </div>
                 <div class="flex gap-2 flex-wrap">
-                    <span class="px-3 py-1 bg-white/5 rounded-full text-[9px] border border-white/10 uppercase font-bold">Python</span>
-                    <span class="px-3 py-1 bg-white/5 rounded-full text-[9px] border border-white/10 uppercase font-bold">AI / ML</span>
+                    <span class="px-3 py-1 bg-white/5 rounded-full text-[9px] border border-white/10 uppercase font-bold">Python / JS Logic</span>
+                    <span class="px-3 py-1 bg-white/5 rounded-full text-[9px] border border-white/10 uppercase font-bold">Entropy Analysis</span>
                 </div>
             </div>
 
-            <div class="bento-card p-8 md:p-10 flex flex-col justify-between">
+            <!-- PROJECT 2: Network Traffic & Threat Analyzer -->
+            <div class="bento-card p-6 md:p-8 flex flex-col justify-between">
                 <div>
-                    <div class="icon-box mb-6"><i data-lucide="cpu"></i></div>
-                    <h3 class="text-2xl font-serif italic mb-3">Network Traffic & Threat Analyzer</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed mb-6">Automated Python backend system engineered for deep network traffic inspection, threat intelligence parsing, and prompt detection of phishing attempts.</p>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="icon-box"><i data-lucide="cpu"></i></div>
+                        <span class="text-[9px] tracking-widest text-[#DC2626] font-bold uppercase bg-[#DC2626]/10 px-3 py-1 rounded-full border border-[#DC2626]/20">Live Tool</span>
+                    </div>
+                    <h3 class="text-2xl font-serif italic mb-2">Network Traffic Analyzer</h3>
+                    <p class="text-gray-400 text-xs leading-relaxed mb-4">Симулятор глубокой инспекции пакетов (DPI) и мониторинга аномалий сетевого трафика.</p>
+                    
+                    <div class="bg-black/40 p-4 rounded-2xl border border-white/10 space-y-3 mb-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] uppercase font-bold text-gray-400">Симуляция пакетов:</span>
+                            <button onclick="simulatePacket()" class="px-3 py-1 bg-[#DC2626] text-white rounded-lg text-[10px] font-bold hover:bg-white hover:text-black transition-all cursor-pointer">Перехватить пакет</button>
+                        </div>
+                        <div id="packetResult" class="text-[11px] text-gray-300 font-mono bg-white/[0.02] p-2.5 rounded-xl border border-white/5 h-16 overflow-y-auto">
+                            Ожидание входящего трафика...
+                        </div>
+                    </div>
                 </div>
                 <div class="flex gap-2 flex-wrap">
-                    <span class="px-3 py-1 bg-white/5 rounded-full text-[9px] border border-white/10 uppercase font-bold">Network Analysis</span>
-                    <span class="px-3 py-1 bg-white/5 rounded-full text-[9px] border border-white/10 uppercase font-bold">Backend</span>
+                    <span class="px-3 py-1 bg-white/5 rounded-full text-[9px] border border-white/10 uppercase font-bold">Network DPI</span>
+                    <span class="px-3 py-1 bg-white/5 rounded-full text-[9px] border border-white/10 uppercase font-bold">Real-time Logs</span>
                 </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- INTERNATIONAL RELATIONS & UNRCCA ACADEMY -->
+    <section id="diplomacy" class="py-20 px-4 md:px-6 max-w-7xl mx-auto">
+        <h2 class="text-xs tracking-[0.5em] text-[#DC2626] font-bold uppercase mb-12 text-center">Global Vision & Diplomacy</h2>
+        <div class="bento-card p-8 md:p-12">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="icon-box"><i data-lucide="globe"></i></div>
+                <div>
+                    <h3 class="text-2xl md:text-3xl font-serif italic">UNRCCA Preventive Diplomacy Academy</h3>
+                    <span class="text-[10px] tracking-widest text-[#DC2626] font-bold uppercase">Selected Participant & Delegate</span>
+                </div>
+            </div>
+            <p class="text-gray-400 text-sm md:text-base leading-relaxed mb-6">
+                Active involvement in international simulations, Model UN security council sessions (representing global delegations), and peace-building initiatives. Bridging technological expertise with cross-border dialogue and regional cooperation frameworks in Central Asia.
+            </p>
+            <div class="flex gap-2 flex-wrap">
+                <span class="px-3 py-1 bg-white/5 rounded-full text-[9px] border border-white/10 uppercase font-bold">Preventive Diplomacy</span>
+                <span class="px-3 py-1 bg-white/5 rounded-full text-[9px] border border-white/10 uppercase font-bold">MUN Simulations</span>
+                <span class="px-3 py-1 bg-white/5 rounded-full text-[9px] border border-white/10 uppercase font-bold">International Relations</span>
             </div>
         </div>
     </section>
@@ -195,40 +278,30 @@
     <!-- CREDENTIALS & EDUCATION -->
     <section id="credentials" class="py-20 px-4 md:px-6 max-w-7xl mx-auto">
         <h2 class="text-xs tracking-[0.5em] text-[#DC2626] font-bold uppercase mb-12 text-center">Education & Certifications</h2>
-        
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- University -->
             <div class="bento-card p-8 flex flex-col justify-between">
                 <div>
                     <div class="icon-box mb-6"><i data-lucide="book-open"></i></div>
                     <h3 class="text-xl font-serif italic mb-2">TTU named after M.S. Osimi</h3>
-                    <p class="text-gray-400 text-xs leading-relaxed">First-year student specializing in Digital Technologies, Systems, and Information Security.</p>
+                    <p class="text-gray-400 text-xs leading-relaxed">First-year undergraduate in Digital Technologies, Systems, and Information Security.</p>
                 </div>
                 <span class="mt-6 text-[9px] text-[#DC2626] font-bold tracking-widest uppercase">Current Education</span>
             </div>
-
-            <!-- EC-Council -->
             <div class="bento-card p-8 flex flex-col justify-between">
                 <div>
                     <div class="icon-box mb-6"><i data-lucide="shield-check"></i></div>
                     <h3 class="text-xl font-serif italic mb-2">EC-Council</h3>
-                    <p class="text-gray-400 text-xs leading-relaxed mb-4">Cybersecurity Attack and Defense Fundamentals Specialization.</p>
+                    <p class="text-gray-400 text-xs leading-relaxed">Completed the Cybersecurity Attack and Defense Fundamentals specialization on Coursera.</p>
                 </div>
-                <a href="https://www.coursera.org" target="_blank" class="inline-flex items-center gap-2 text-[9px] tracking-widest text-[#DC2626] hover:text-white uppercase font-bold transition-colors">
-                    Verify Credential <i data-lucide="external-link" class="w-3 h-3"></i>
-                </a>
+                <span class="mt-6 text-[9px] text-[#DC2626] font-bold tracking-widest uppercase">Specialization</span>
             </div>
-
-            <!-- Google AI -->
             <div class="bento-card p-8 flex flex-col justify-between">
                 <div>
                     <div class="icon-box mb-6"><i data-lucide="sparkles"></i></div>
-                    <h3 class="text-xl font-serif italic mb-2">Google Certifications</h3>
-                    <p class="text-gray-400 text-xs leading-relaxed mb-4">Google AI Essentials & Accelerate Your Job with AI professional courses.</p>
+                    <h3 class="text-xl font-serif italic mb-2">Google Courses</h3>
+                    <p class="text-gray-400 text-xs leading-relaxed">Finished Google AI Essentials and professional courses on leveraging AI workflows.</p>
                 </div>
-                <a href="https://www.coursera.org" target="_blank" class="inline-flex items-center gap-2 text-[9px] tracking-widest text-[#DC2626] hover:text-white uppercase font-bold transition-colors">
-                    Verify Credential <i data-lucide="external-link" class="w-3 h-3"></i>
-                </a>
+                <span class="mt-6 text-[9px] text-[#DC2626] font-bold tracking-widest uppercase">Professional Course</span>
             </div>
         </div>
     </section>
@@ -238,16 +311,16 @@
         <div class="text-center mb-12">
             <h2 class="text-4xl md:text-5xl font-serif italic mb-4">Start a <span class="text-[#DC2626]">Conversation</span></h2>
         </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-16">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mx-auto">
             <a href="https://www.instagram.com/amkinyc?igsh=MWw4dmc3YmIzMzZw" target="_blank" class="bento-card p-6 md:p-10 flex items-center justify-between group">
                 <div class="flex items-center gap-4">
-                    <div class="icon-box group-hover:bg-[#DC2626] group-hover:text-white transition-all"><i data-lucide="instagram"></i></div>
+                    <div class="icon-box group-hover:bg-[#DC2626] group-hover:text-white transition-all">
+                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    </div>
                     <span class="text-[10px] font-bold tracking-widest uppercase">Instagram</span>
                 </div>
                 <i data-lucide="arrow-up-right" class="w-4 h-4 text-gray-700 group-hover:text-[#DC2626] transition-colors"></i>
             </a>
-
             <a href="https://t.me/amkinyc" target="_blank" class="bento-card p-6 md:p-10 flex items-center justify-between group">
                 <div class="flex items-center gap-4">
                     <div class="icon-box group-hover:bg-[#DC2626] group-hover:text-white transition-all"><i data-lucide="send"></i></div>
@@ -255,23 +328,14 @@
                 </div>
                 <i data-lucide="arrow-up-right" class="w-4 h-4 text-gray-700 group-hover:text-[#DC2626] transition-colors"></i>
             </a>
-
-            <a href="tel:+992 93 552 6677" class="bento-card p-6 md:p-10 flex items-center justify-between group">
+            <a href="mailto:amin.jumaev7@gmail.com" class="bento-card p-6 md:p-10 flex items-center justify-between group">
                 <div class="flex items-center gap-4">
-                    <div class="icon-box group-hover:bg-[#DC2626] group-hover:text-white transition-all"><i data-lucide="phone"></i></div>
-                    <span class="text-[10px] font-bold tracking-widest uppercase">Call Me</span>
+                    <div class="icon-box group-hover:bg-[#DC2626] group-hover:text-white transition-all"><i data-lucide="mail"></i></div>
+                    <span class="text-[10px] font-bold tracking-widest uppercase">Email Me</span>
                 </div>
                 <i data-lucide="arrow-up-right" class="w-4 h-4 text-gray-700 group-hover:text-[#DC2626] transition-colors"></i>
             </a>
         </div>
-
-        <form class="max-w-xl mx-auto space-y-6">
-            <input type="text" placeholder="NAME" class="w-full bg-transparent border-b border-white/10 py-4 outline-none focus:border-[#DC2626] transition-colors tracking-widest text-[9px] text-white">
-            <input type="email" placeholder="EMAIL" class="w-full bg-transparent border-b border-white/10 py-4 outline-none focus:border-[#DC2626] transition-colors tracking-widest text-[9px] text-white">
-            <button class="w-full py-5 bg-white text-black font-black tracking-[0.4em] text-[9px] uppercase rounded-full hover:bg-[#DC2626] hover:text-white transition-all duration-500">
-                Submit
-            </button>
-        </form>
     </section>
 
     <footer class="py-12 text-center border-t border-white/5">
@@ -281,15 +345,75 @@
     <script>
         lucide.createIcons();
 
-        const ball1 = document.getElementById('ball1');
-        const ball2 = document.getElementById('ball2');
+        function openCVModal() {
+            document.getElementById('cvModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeCVModal() {
+            document.getElementById('cvModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+        document.getElementById('cvModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('cvModal')) closeCVModal();
+        });
+
+        function analyzePasswordLive() {
+            const pwd = document.getElementById('pwdInput').value;
+            const resBox = document.getElementById('pwdResult');
+            if(!pwd) {
+                resBox.innerHTML = "Статус: ожидание ввода...";
+                return;
+            }
+            let charset = 0;
+            if(/[a-z]/.test(pwd)) charset += 26;
+            if(/[A-Z]/.test(pwd)) charset += 26;
+            if(/[0-9]/.test(pwd)) charset += 10;
+            if(/[^a-zA-Z0-9]/.test(pwd)) charset += 32;
+
+            const entropy = charset > 0 ? Math.round(pwd.length * Math.log2(charset)) : 0;
+            let strength = "Слабый ❌";
+            let color = "text-red-400";
+            if(entropy > 60 && pwd.length >= 10) {
+                strength = "Надежный ✔";
+                color = "text-green-400";
+            } else if(entropy > 35) {
+                strength = "Средний ⚠️";
+                color = "text-yellow-400";
+            }
+            resBox.innerHTML = `<span class="${color}">Уровень: ${strength}</span> | Энтропия: ${entropy} бит | Длина: ${pwd.length}`;
+        }
+
+        const sampleIPs = ["192.168.1.55", "10.0.0.15", "45.33.22.11", "185.220.101.5", "127.0.0.1"];
+        const samplePorts = [80, 443, 22, 3389, 4444, 8080];
+        
+        function simulatePacket() {
+            const randomIP = sampleIPs[Math.floor(Math.random() * sampleIPs.length)];
+            const randomPort = samplePorts[Math.floor(Math.random() * samplePorts.length)];
+            const packetSize = Math.floor(Math.random() * 1800) + 200;
+            
+            let threat = "Безопасно [OK]";
+            let color = "text-green-400";
+            
+            if([22, 3389, 4444].includes(randomPort)) {
+                threat = "Подозрительный порт (Угроза) [WARN]";
+                color = "text-red-400";
+            } else if(packetSize > 1500) {
+                threat = "Аномальный MTU (Фрагментация) [ALERT]";
+                color = "text-yellow-400";
+            }
+
+            const resultHtml = `[PACKET] IP: ${randomIP} | Порт: ${randomPort} | Размер: ${packetSize} байт<br>Вердикт: <span class="${color}">${threat}</span>`;
+            document.getElementById('packetResult').innerHTML = resultHtml;
+        }
+
+        gsap.to("#ball1", { x: "random(-300, 300, 30)", y: "random(-250, 250, 30)", scale: "random(0.7, 1.4)", duration: 6, repeat: -1, yoyo: true, ease: "sine.inOut" });
+        gsap.to("#ball2", { x: "random(-350, 350, 30)", y: "random(-300, 300, 30)", scale: "random(0.8, 1.5)", duration: 8, repeat: -1, yoyo: true, ease: "sine.inOut" });
+        gsap.to("#ball3", { x: "random(-300, 300, 30)", y: "random(-250, 250, 30)", scale: "random(0.8, 1.6)", duration: 7, repeat: -1, yoyo: true, ease: "sine.inOut" });
 
         window.addEventListener('mousemove', (e) => {
-            const x = (e.clientX / window.innerWidth) * 40;
-            const y = (e.clientY / window.innerHeight) * 40;
-            
-            ball1.style.transform = `translate(${x}px, ${y}px)`;
-            ball2.style.transform = `translate(${-x}px, ${-y}px)`;
+            const x = (e.clientX / window.innerWidth - 0.5) * 80;
+            const y = (e.clientY / window.innerHeight - 0.5) * 80;
+            gsap.to(".mesh-container", { x: x, y: y, duration: 1, ease: "power2.out" });
 
             if(window.innerWidth > 768) {
                 gsap.to("#cursor-dot", { x: e.clientX, y: e.clientY, duration: 0 });
@@ -299,7 +423,6 @@
 
         gsap.registerPlugin(ScrollTrigger);
         gsap.from(".fade-in", { opacity: 0, y: 30, duration: 1.5, ease: "power4.out" });
-        
         gsap.utils.toArray('.bento-card').forEach(card => {
             gsap.from(card, {
                 scrollTrigger: { trigger: card, start: "top 95%" },
